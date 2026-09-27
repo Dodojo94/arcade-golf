@@ -11,7 +11,15 @@ npm install
 npm run dev
 ```
 
-Open the URL Vite prints (default `http://localhost:5173`). You should see a fairway plane, a ball, and a HUD (“Arcade Golf V0 — Hole 1” + swing meter stub).
+Open the URL Vite prints (default `http://localhost:5173`). You should see hole 1 (fairway, green, bunker, water), a ball on the tee, a pin, and a live 3-click swing meter. A full straight drive finishes on the green.
+
+| Control | Action |
+|---------|--------|
+| A / D or ← / → | Aim left / right (before the swing) |
+| Space or click | Swing: start, set power, set accuracy |
+| R | Reset the ball to the tee |
+
+Center of the strike bar is **Nice Shot**. A miss hooks, slices, or duffs. A light crosswind shows in the top-right HUD and nudges the ball in the air.
 
 | Script | What it does |
 |--------|----------------|
@@ -23,7 +31,7 @@ Open the URL Vite prints (default `http://localhost:5173`). You should see a fai
 
 - [Vite](https://vitejs.dev/) + TypeScript
 - [three](https://threejs.org/) for the 3D scene
-- [cannon-es](https://github.com/pmndrs/cannon-es) installed for physics (ball physics is stubbed / TODO in `src/main.ts`)
+- [cannon-es](https://github.com/pmndrs/cannon-es) steps the ball each frame (driver impulse, wind, roll)
 
 Plain Vite + three is intentional; `@react-three/fiber` is optional later, not required for V0.
 
