@@ -28,9 +28,19 @@ Open `http://localhost:5173` (or the URL Vite prints).
 
 You should see:
 
-1. A Three.js canvas with sky + green fairway + white ball
-2. HUD text: **Arcade Golf V0 — Hole 1**
-3. A stub swing meter bar at the bottom (non-functional chrome is OK for seed)
+1. A Three.js fairway, tee, ball, and a red pin downrange
+2. HUD: **Arcade Golf V0 — Hole 1**, aim line, and an 8 mph wind arrow
+3. A power bar and a strike zone (Duff / Hook / Nice / Slice / Duff)
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| A / D or Left / Right | Aim (only while addressing the ball) |
+| Space or left click | 3-click swing: start → power → accuracy |
+| R | Put the ball back on the tee |
+
+Hit the green center of the strike bar for **Nice Shot**. Missing left hooks, missing right slices, and the outer red zones duff the shot.
 
 ## Common commands
 
@@ -57,4 +67,4 @@ npm run preview  # serve dist/
 
 - Blank page: check the browser console; confirm `#game-canvas` exists.
 - `tsc` errors: fix TypeScript before pushing; `build` runs `tsc`.
-- Physics not moving the ball: expected in seed — see TODO in `src/main.ts`.
+- Ball doesn't move: click or press Space three times (start, power, accuracy). `R` returns it to the tee.
