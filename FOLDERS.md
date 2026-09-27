@@ -22,9 +22,8 @@ src/
       fairway.ts
 
   physics/
-    world.ts              # cannon-es (or Rapier) world setup
+    world.ts              # cannon-es world; stepped from the animate loop
     ballBody.ts           # ball rigid body + sync to Three mesh
-    # TODO: wire World.step in the animate loop
 
   gameplay/
     swing/
@@ -63,6 +62,6 @@ src/
 |-----|--------|
 | `src/main.ts` scene + ball + light + chase stub | `render/` + `physics/` + `gameplay/` |
 | `#hud` in `main.ts` / `style.css` | `ui/hud/` |
-| Single fairway plane | `course/holes/hole1.ts` … |
+| Single fairway plane | `course/holes/hole1.ts` blockout. Holes 2–3 TODO |
 
 Keep modules boring and importable; avoid premature abstraction until the swing loop exists.

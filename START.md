@@ -28,8 +28,8 @@ Open `http://localhost:5173` (or the URL Vite prints).
 
 You should see:
 
-1. A Three.js fairway, tee, ball, and a red pin downrange
-2. HUD: **Arcade Golf V0 — Hole 1**, aim line, and an 8 mph wind arrow
+1. Hole 1 blockout: dark rough, fairway, bright green, a left greenside bunker, water on the right, a gold tee, and a red pin
+2. HUD: **Arcade Golf V0 — Hole 1**, Par 3 · 22m, the lie (Tee / On the green / In the hole / …), and an 8 mph wind arrow
 3. A power bar and a strike zone (Duff / Hook / Nice / Slice / Duff)
 
 ### Controls
@@ -40,7 +40,7 @@ You should see:
 | Space or left click | 3-click swing: start → power → accuracy |
 | R | Put the ball back on the tee |
 
-Hit the green center of the strike bar for **Nice Shot**. Missing left hooks, missing right slices, and the outer red zones duff the shot.
+Hit the green center of the strike bar for **Nice Shot**. A full driver should finish **on the green**, a couple of meters right of the cup because of the crosswind. Stopping inside the black cup reads **In the hole** (aim a little left and don’t overcook it). A big slice finds the water; aiming hard left can plug the bunker. **R** replays from the tee. Holes 2 and 3 are not in yet.
 
 ## Common commands
 

@@ -3,6 +3,10 @@ import * as CANNON from 'cannon-es';
 import * as THREE from 'three';
 
 import { bindInput } from './core/Input';
+import { createHoleView } from './course/createHoleView';
+import { lieLabel, sampleLie, type LieKind } from './course/Hole';
+import { HOLE_1 } from './course/holes/hole1';
+import { applyLieDrag } from './course/surface';
 import { ACTIVE_CLUB } from './gameplay/clubs/Club';
 import { computeLaunch, curveForce } from './gameplay/swing/launch';
 import { SwingMeter, type SwingResult } from './gameplay/swing/SwingMeter';
@@ -15,7 +19,6 @@ import {
   isBallNearlyStopped,
   resetBallToTee,
   syncBallMesh,
-  TEE_POSITION,
 } from './physics/ballBody';
 import { createPhysicsWorld, PHYSICS_DT } from './physics/world';
 import { ChaseCamera } from './render/camera/ChaseCamera';
@@ -27,12 +30,14 @@ import { SwingMeterView } from './ui/hud/SwingMeterView';
  *   Space or click — 3-click swing (start, power, strike)
  *   R — reset ball to the tee
  *
- * TODO: holes 2–3, lie, putting, scorecard, club switching.
+ * Hole 1 blockout is loaded on boot. Swing meter is unchanged.
+ *
+ * TODO: holes 2–3, putting, scorecard, club switching, lie modifiers.
  */
 
-const PIN = new THREE.Vector3(0, 0, -14);
 const AIM_RATE = 1.05;
 const MAX_AIM = Math.PI / 3;
+const TEE = { x: HOLE_1.tee.x, y: BALL_RADIUS, z: HOLE_1.tee.z };
 
 const app = document.querySelector<HTMLDivElement>('#app');
 if (!app) throw new Error('#app root missing');
@@ -43,7 +48,7 @@ app.innerHTML = `
     <div id="hud-top">
       <div id="hud-copy">
         <div id="hud-title">Arcade Golf V0 — Hole 1</div>
-        <div id="hud-meta">Par 4 · 20m · Stroke 1 · Driver</div>
+        <div id="hud-meta">Par 3 · 22m · Stroke 1 · Driver · Tee</div>
         <div id="hud-aim">Aim straight</div>
       </div>
       <div id="wind-indicator" aria-label="Wind">
@@ -111,40 +116,7 @@ sun.shadow.camera.top = 30;
 sun.shadow.camera.bottom = -30;
 scene.add(sun);
 
-const fairway = new THREE.Mesh(
-  new THREE.PlaneGeometry(60, 60),
-  new THREE.MeshStandardMaterial({
-    color: 0x3e9b4a,
-    roughness: 0.9,
-    metalness: 0.05,
-  }),
-);
-fairway.rotation.x = -Math.PI / 2;
-fairway.receiveShadow = true;
-scene.add(fairway);
-
-const stripe = new THREE.Mesh(
-  new THREE.PlaneGeometry(7, 36),
-  new THREE.MeshStandardMaterial({
-    color: 0x4caf50,
-    roughness: 0.95,
-    metalness: 0,
-  }),
-);
-stripe.rotation.x = -Math.PI / 2;
-stripe.position.set(0, 0.01, -4);
-stripe.receiveShadow = true;
-scene.add(stripe);
-
-addPin(scene, PIN);
-
-const tee = new THREE.Mesh(
-  new THREE.BoxGeometry(0.7, 0.04, 0.7),
-  new THREE.MeshStandardMaterial({ color: 0xd4a017, roughness: 0.8 }),
-);
-tee.position.set(0, 0.02, TEE_POSITION.z + 0.35);
-tee.receiveShadow = true;
-scene.add(tee);
+createHoleView(scene, HOLE_1);
 
 const ballMesh = new THREE.Mesh(
   new THREE.SphereGeometry(BALL_RADIUS, 24, 24),
@@ -155,12 +127,12 @@ const ballMesh = new THREE.Mesh(
   }),
 );
 ballMesh.castShadow = true;
-ballMesh.position.set(TEE_POSITION.x, TEE_POSITION.y, TEE_POSITION.z);
+ballMesh.position.set(TEE.x, TEE.y, TEE.z);
 scene.add(ballMesh);
 
 const aimArrow = new THREE.ArrowHelper(
   new THREE.Vector3(0, 0, -1),
-  new THREE.Vector3(TEE_POSITION.x, 0.08, TEE_POSITION.z),
+  new THREE.Vector3(TEE.x, 0.08, TEE.z),
   4.5,
   0xffe28a,
   1.05,
@@ -169,7 +141,7 @@ const aimArrow = new THREE.ArrowHelper(
 scene.add(aimArrow);
 
 const { world, ballMaterial } = createPhysicsWorld();
-const ballBody = createBallBody(world, ballMaterial);
+const ballBody = createBallBody(world, ballMaterial, TEE);
 const wind = new Wind();
 const swing = new SwingMeter();
 const hud = new SwingMeterView(document);
@@ -193,9 +165,12 @@ let calloutText = '';
 let calloutQuality = '';
 let calloutUntil = 0;
 let accumulator = 0;
+/** Water and the cup end the hole until R. The green does not. */
+let outcome: 'play' | 'hole' | 'water' = 'play';
 
 const input = bindInput({
   onSwing: () => {
+    if (outcome !== 'play') return;
     const result = swing.press();
     if (result) launchShot(result);
   },
@@ -243,7 +218,7 @@ function launchShot(result: SwingResult): void {
 }
 
 function resetTee(): void {
-  resetBallToTee(ballBody);
+  resetBallToTee(ballBody, TEE);
   syncBallMesh(ballMesh, ballBody);
   aimYaw = 0;
   strokes = 1;
@@ -251,6 +226,7 @@ function resetTee(): void {
   atTee = true;
   flightTime = 0;
   stillTime = 0;
+  outcome = 'play';
   calloutText = '';
   calloutQuality = '';
   swing.reset();
@@ -288,6 +264,7 @@ function animate(): void {
     } else if (swing.phase === 'flight') {
       applyRollBrake(ballBody);
     }
+    applyLieDrag(ballBody, HOLE_1);
     world.step(PHYSICS_DT);
     accumulator -= PHYSICS_DT;
   }
@@ -297,14 +274,30 @@ function animate(): void {
     ballMesh.position.y += Math.sin(clock.elapsedTime * 2.5) * 0.018;
   }
 
+  const lie = readLie();
+
   if (swing.phase === 'flight') {
     flightTime += dt;
-    if (flightTime > 0.35 && isBallNearlyStopped(ballBody)) {
+    const stopped = flightTime > 0.35 && isBallNearlyStopped(ballBody);
+    const drowned = lie === 'water' && flightTime > 0.25;
+    if (stopped || drowned) {
       stillTime += dt;
-      if (stillTime > 0.2) settleShot();
+      if (stillTime > 0.2 || drowned) finishShot(lie);
     } else {
       stillTime = 0;
     }
+  }
+
+  if (outcome === 'hole') {
+    ballBody.velocity.set(0, 0, 0);
+    ballBody.angularVelocity.set(0, 0, 0);
+    ballBody.position.x = HOLE_1.pin.x;
+    ballBody.position.y = BALL_RADIUS;
+    ballBody.position.z = HOLE_1.pin.z;
+    ballMesh.position.set(HOLE_1.pin.x, 0.05, HOLE_1.pin.z);
+  } else if (outcome === 'water') {
+    ballBody.velocity.set(0, 0, 0);
+    ballBody.angularVelocity.set(0, 0, 0);
   }
 
   if (calloutText && clock.elapsedTime > calloutUntil) {
@@ -327,9 +320,9 @@ function animate(): void {
     phase: swing.phase,
     power: swing.shownPower(),
     accuracy: swing.shownAccuracy(),
-    hint: swing.hint(),
+    hint: hudHint(),
     aimText: formatAim(aimYaw),
-    metaText: `Par 4 · 20m · Stroke ${strokes} · ${ACTIVE_CLUB.label}`,
+    metaText: `Par ${HOLE_1.par} · ${HOLE_1.yardage}m · Stroke ${strokes} · ${ACTIVE_CLUB.label} · ${lieLabel(lie)}`,
     callout: calloutText,
     calloutQuality,
   });
@@ -338,6 +331,41 @@ function animate(): void {
 }
 
 animate();
+
+function finishShot(lie: LieKind): void {
+  if (swing.phase !== 'flight') return;
+  settleShot();
+  if (lie === 'hole') outcome = 'hole';
+  else if (lie === 'water') outcome = 'water';
+  calloutText = lie === 'hole' ? 'In the hole!' : lieLabel(lie);
+  calloutQuality = lie;
+  calloutUntil = clock.elapsedTime + 2.2;
+}
+
+function readLie(): LieKind {
+  if (
+    atTee &&
+    (swing.phase === 'idle' || swing.phase === 'power' || swing.phase === 'accuracy')
+  ) {
+    return 'tee';
+  }
+  if (outcome === 'hole') return 'hole';
+  if (outcome === 'water') return 'water';
+  const speed = Math.hypot(ballBody.velocity.x, ballBody.velocity.z);
+  return sampleLie(
+    HOLE_1,
+    ballBody.position.x,
+    ballBody.position.y,
+    ballBody.position.z,
+    speed,
+  );
+}
+
+function hudHint(): string {
+  if (outcome === 'hole') return 'In the hole — press R to replay';
+  if (outcome === 'water') return 'Water — press R to replay';
+  return swing.hint();
+}
 
 function formatAim(yaw: number): string {
   const deg = Math.round((yaw * 180) / Math.PI);
@@ -353,34 +381,4 @@ function mountWind(next: Wind): void {
   arrow.style.transform = `rotate(${next.headingDeg().toFixed(1)}deg)`;
   label.textContent = next.label();
   wrap.setAttribute('aria-label', `Wind ${next.label()}, cross from the left`);
-}
-
-/** Visual pin only — no cup collision or putting. */
-function addPin(target: THREE.Scene, position: THREE.Vector3): void {
-  const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.035, 0.035, 2.1, 8),
-    new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 0.45 }),
-  );
-  pole.position.set(position.x, 1.05, position.z);
-  pole.castShadow = true;
-
-  const flag = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.72, 0.42),
-    new THREE.MeshStandardMaterial({
-      color: 0xe74c3c,
-      roughness: 0.55,
-      side: THREE.DoubleSide,
-    }),
-  );
-  flag.position.set(position.x + 0.38, 1.88, position.z);
-  flag.castShadow = true;
-
-  const cup = new THREE.Mesh(
-    new THREE.CircleGeometry(0.32, 20),
-    new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 1 }),
-  );
-  cup.rotation.x = -Math.PI / 2;
-  cup.position.set(position.x, 0.025, position.z);
-
-  target.add(pole, flag, cup);
 }

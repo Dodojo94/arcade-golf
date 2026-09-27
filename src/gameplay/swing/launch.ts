@@ -10,7 +10,8 @@ export const DUFF_WINDOW = 0.58;
 /**
  * Full-power driver speed in m/s, before club scale.
  * Tuned with cannon-es so a center strike carries ~19m and rolls out ~23m
- * from the tee (pin is 20m downrange).
+ * from the tee. Hole 1's pin is 22m downrange; the crosswind drifts the
+ * rest about 2m right of the cup.
  */
 export const DRIVER_LAUNCH_SPEED = 15;
 

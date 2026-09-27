@@ -124,6 +124,28 @@ body {
   color: #ff8d8d;
 }
 
+#shot-callout.green {
+  color: #c6ff8a;
+}
+
+#shot-callout.hole {
+  color: #ffe66d;
+}
+
+#shot-callout.bunker {
+  color: #f3d48a;
+}
+
+#shot-callout.water {
+  color: #8ecbff;
+}
+
+#shot-callout.fairway,
+#shot-callout.rough,
+#shot-callout.tee {
+  color: #f4fff4;
+}
+
 #hud-bottom {
   display: flex;
   flex-direction: column;

@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open the URL Vite prints (default `http://localhost:5173`). You should see a fairway, a ball on the tee, a pin downrange, and a live 3-click swing meter.
+Open the URL Vite prints (default `http://localhost:5173`). You should see hole 1 (fairway, green, bunker, water), a ball on the tee, a pin, and a live 3-click swing meter. A full straight drive finishes on the green.
 
 | Control | Action |
 |---------|--------|
