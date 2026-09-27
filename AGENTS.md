@@ -30,3 +30,8 @@ Roles and rules for humans and bots working on this repo.
 ## Seed exception
 
 The initial greenfield seed may push directly to `main`. After that, use PRs.
+
+## Grok Build
+
+When dodo (or Niki) pastes a task into **Grok Build**, that agent must follow [GROK_BUILD.md](./GROK_BUILD.md): branch from `main`, stay in VISION V0, open a PR, **never merge**. The Build room reviews the PR; humans merge.
+

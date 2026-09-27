@@ -48,7 +48,7 @@ npm run preview  # serve dist/
 
 ## Bot / agent quick path
 
-1. Read [VISION.md](./VISION.md) and [AGENTS.md](./AGENTS.md) before coding.
+1. Read [VISION.md](./VISION.md), [AGENTS.md](./AGENTS.md), and [GROK_BUILD.md](./GROK_BUILD.md) before coding (Grok Build sessions: GROK_BUILD is mandatory).
 2. Work under `/workspace/arcade-golf` (or your clone) on a feature branch unless the task says otherwise.
 3. Prove the seed still works: `npm install && npm run build`.
 4. **Bots never merge** — open a PR; humans merge.
