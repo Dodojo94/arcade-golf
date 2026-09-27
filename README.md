@@ -41,6 +41,7 @@ Plain Vite + three is intentional; `@react-three/fiber` is optional later, not r
 | [VISION.md](./VISION.md) | North star + V0 in/out |
 | [AGENTS.md](./AGENTS.md) | Roles and collaboration rules |
 | [FOLDERS.md](./FOLDERS.md) | Proposed `src/` layout |
+| [GROK_BUILD.md](./GROK_BUILD.md) | Standing rules + checklist for Grok Build sessions |
 
 ## Repo
 
